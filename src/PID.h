@@ -9,10 +9,19 @@ public:
   double p_error;
   double i_error;
   double d_error;
+  double prev_cte;
+
+  /**
+   * Error counters
+  **/
+  long counter;
+  double errorSum;
+  double minError;
+  double maxError;
 
   /*
   * Coefficients
-  */ 
+  */
   double Kp;
   double Ki;
   double Kd;
@@ -35,17 +44,27 @@ public:
   /*
   * Update the PID error variables given cross track error.
   */
-  void UpdateError(double cte, double dt);
+  void UpdateError(double cte);
 
   /*
   * Calculate the total PID error.
   */
-  double TotalError(double speed);
+  double TotalError();
 
-  int   *window      ;
-  int    i           ;
-  double sum         ;
-  double add_i(double err);
+  /*
+  *  Returns the average error.
+  */
+  double AverageError();
+
+  /*
+  * Returns the min error.
+  */
+  double MinError();
+
+  /*
+  * Returns the max error.
+  */
+  double MaxError();
 };
 
 #endif /* PID_H */

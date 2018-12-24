@@ -1,42 +1,69 @@
-#include <iostream>
-#include <stdlib.h>
 #include "PID.h"
 
-#define WINDOW_SIZE 20
+#include <algorithm>
+// using namespace std;
 
-
-using namespace std;
-
+/*
+* TODO: Complete the PID class.
+*/
 
 PID::PID() {}
 
 PID::~PID() {}
 
 void PID::Init(double Kp, double Ki, double Kd) {
-  this->Kp = Kp;
-  this->Ki = Ki;
-  this->Kd = Kd;
-  p_error = 0;
-  i_error = 0;
-  d_error = 0;
-  window      = (int*) calloc( WINDOW_SIZE , sizeof(window[0]) ) ;
-  i           = WINDOW_SIZE - 1 ;
-  sum         = 0 ;
+  PID::Kp = Kp;
+  PID::Ki = Ki;
+  PID::Kd = Kd;
+
+  p_error = 0.0;
+  i_error = 0.0;
+  d_error = 0.0;
+
+  // Previous cte.
+  prev_cte = 0.0;
+
+  // Counters.
+  counter = 0;
+  errorSum = 0.0;
+  minError = std::numeric_limits<double>::max();
+  maxError = std::numeric_limits<double>::min();
 }
 
-void PID::UpdateError(double cte, double dt) {
-  d_error = (cte - p_error) / dt;
+void PID::UpdateError(double cte) {
+  // Proportional error.
   p_error = cte;
-  i_error = add_i(cte * dt);
+
+  // Integral error.
+  i_error += cte;
+
+  // Diferential error.
+  d_error = cte - prev_cte;
+  prev_cte = cte;
+
+  errorSum += cte;
+  counter++;
+
+  if ( cte > maxError ) {
+    maxError = cte;
+  }
+  if ( cte < minError ) {
+    minError = cte;
+  }
 }
 
-double PID::TotalError(double speed) {
-  //PID parameters corrected for different speed
-  return (Kp - 0.0032 * speed) * p_error + Ki * i_error + (Kd + 0.0002 * speed) * d_error;
+double PID::TotalError() {
+  return p_error * Kp + i_error * Ki + d_error * Kd;
 }
 
-double PID::add_i(double err){
-  i          = (i+1) % WINDOW_SIZE ;
-  sum        = sum - window[i] + err ;
-  return sum;
+double PID::AverageError() {
+  return errorSum/counter;
+}
+
+double PID::MinError() {
+  return minError;
+}
+
+double PID::MaxError() {
+  return maxError;
 }
